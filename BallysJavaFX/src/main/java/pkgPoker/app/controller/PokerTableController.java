@@ -26,6 +26,7 @@ import pkgPokerEnum.eAction;
 import pkgPokerEnum.eGame;
 import pkgPokerBLL.Action;
 import pkgPokerBLL.GamePlay;
+import pkgPokerBLL.Player;
 import pkgPokerBLL.Table;
 
 public class PokerTableController implements Initializable {
@@ -101,17 +102,33 @@ public class PokerTableController implements Initializable {
 	public void GetGameState() {
 	}
 
-	//TODO: Lab #4 - Complete (fix) setiPlayerPosition
 	public void btnSitLeave_Click(ActionEvent event) {
-
-		// Set the PlayerPosition in the Player
-		mainApp.getPlayer().setiPlayerPosition(1);
-
-		// Build an Action message
-		Action act = new Action(eAction.Sit, mainApp.getPlayer());
-
-		// Send the Action to the Hub
-		mainApp.messageSend(act);
+		
+		Button pressed=(Button)event.getSource();
+		
+		Action act=new Action();
+		
+		if(pressed.getId()=="btnPos1SitLeave"&&pressed.getText()=="Sit")
+		{
+			mainApp.getPlayer().setiPlayerPosition(1);
+			
+			act = new Action(eAction.Sit, mainApp.getPlayer());
+		}
+		else if(pressed.getId()=="btnPos2SitLeave"&&pressed.getText()=="Sit")
+		{
+			mainApp.getPlayer().setiPlayerPosition(2);
+			act = new Action(eAction.Sit, mainApp.getPlayer());
+		}
+		else if(pressed.getId()=="btnPos2SitLeave"&&pressed.getText()=="Leave")
+		{
+			mainApp.getPlayer().setiPlayerPosition(-1);
+			act= new Action(eAction.Leave, mainApp.getPlayer());
+		}
+		else if(pressed.getId()=="btnPos1SitLeave"&&pressed.getText()=="Leave")
+		{
+			mainApp.getPlayer().setiPlayerPosition(-1);
+			act= new Action(eAction.Leave, mainApp.getPlayer());
+		}
 	}
 
 	public void MessageFromMainApp(String strMessage) {
@@ -155,9 +172,44 @@ public class PokerTableController implements Initializable {
 
 	}
 
-	//TODO: Lab #4 Complete the implementation
+	// TODO: Lab #4 Complete the implementation
 	public void Handle_TableState(Table HubPokerTable) {
+		// Basically the view to its most basic condition
+		lblPlayerPos1.setText("");
+		lblPlayerPos2.setText("");
+		btnPos1SitLeave.setText("Sit");
+		btnPos2SitLeave.setText("Sit");
 
+		// I used an arraylist to get my players in table
+		ArrayList<Player> playersnow = HubPokerTable.getPlayersInTable();
+
+		//An important condition
+		if (playersnow.size() > 0) {
+			btnPos1SitLeave.setVisible(false);
+			btnPos2SitLeave.setVisible(false);
+		}
+		for (Player p : playersnow) {
+			if (p.getiPlayerPosition() == 1) {
+				lblPlayerPos1.setText(p.getPlayerName());
+				btnPos1SitLeave.setText("Leave");
+
+			} 
+			else if (p.getiPlayerPosition() == 2) {
+				lblPlayerPos2.setText(p.getPlayerName());
+				btnPos2SitLeave.setText("Leave");
+			}
+
+			ToggleButton btnSitLeave = getSitLeave(p.getiPlayerPosition());
+
+			if (p.getiPokerClientID() == mainApp.getPlayer().getiPokerClientID()) {
+				btnSitLeave.setText("Leave");
+				btnSitLeave.setVisible(true);
+
+			} 
+			else {
+				btnSitLeave.setVisible(false);
+			}
+		}
 	}
 
 	public void Handle_GameState(GamePlay HubPokerGame) {
